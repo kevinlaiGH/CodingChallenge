@@ -1,5 +1,9 @@
 const fs = require('fs');
-const { sortObjectAttributes, sanitizedPath } = require('./utils/index');
+const {
+  sortObjectAttributes,
+  sanitizedPath,
+  Logger,
+} = require('./helper');
 
 const parseJsonData = (data) => {
   const jsonData = JSON.parse(data);
@@ -12,9 +16,9 @@ const sortAndSaveData = async (inputFile, outputFile) => {
     const data = await fs.promises.readFile(sanitizedPath(inputFile), 'utf8');
     const sortedData = parseJsonData(data);
     await fs.promises.writeFile(sanitizedPath(outputFile), sortedData);
-    // console.info(`Data attributes sorted and saved to ${outputFile}`);
+    Logger.info(`Data attributes sorted and saved to ${outputFile}`);
   } catch (err) {
-    // console.error('Error processing file:', err);
+    Logger.error('Error processing file:', err);
     throw err;
   }
 };
