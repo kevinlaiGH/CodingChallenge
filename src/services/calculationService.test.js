@@ -7,16 +7,16 @@ const {
   calculateAssets,
   calculateLiabilities,
   calculateWorkingCapitalRatio,
-} = require('./index');
+} = require('./calculationService');
 const {
   ACCOUNT_CATEGORY,
   ACCOUNT_TYPE,
   ASSET_TYPES,
   LIABILITY_TYPES,
   VALUE_TYPE,
-} = require('./constants');
+} = require('../../constants');
 
-describe('calculateAccountingMetrics', () => {
+describe('calculationService', () => {
   describe('calculateRevenue', () => {
     it('should return 0 if there are no revenue items', () => {
       const fileContent = {
