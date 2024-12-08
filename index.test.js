@@ -1,4 +1,4 @@
-const { sortObjectAttributes } = require('./index');
+const { sortObjectAttributes, parseJsonData } = require('./index');
 
 describe('sortObjectAttributes', () => {
   it('should sort the attributes of an object alphabetically', () => {
@@ -42,5 +42,57 @@ describe('sortObjectAttributes', () => {
     const input = { account_category: 'liability' };
     const expectedOutput = { account_category: 'liability' };
     expect(sortObjectAttributes(input)).toEqual(expectedOutput);
+  });
+});
+describe('parseJsonData', () => {
+  it('should parse JSON data with sorted object attributes', () => {
+    const input = JSON.stringify({
+      data: [
+        { account_name: 'B', account_status: 'ACTIVE' },
+        { account_name: 'A', account_status: 'INACTIVE' },
+      ],
+    });
+    const expectedOutput = JSON.stringify(
+      {
+        data: [
+          { account_name: 'B', account_status: 'ACTIVE' },
+          { account_name: 'A', account_status: 'INACTIVE' },
+        ],
+      },
+      null,
+      2
+    );
+    expect(parseJsonData(input)).toEqual(expectedOutput);
+  });
+
+  it('should handle JSON data with an empty data array', () => {
+    const input = JSON.stringify({ data: [] });
+    const expectedOutput = JSON.stringify({ data: [] }, null, 2);
+    expect(parseJsonData(input)).toEqual(expectedOutput);
+  });
+
+  it('should throw an error for invalid JSON input', () => {
+    const input = 'invalid json';
+    expect(() => parseJsonData(input)).toThrow(SyntaxError);
+  });
+
+  it('should handle JSON data with nested objects', () => {
+    const input = JSON.stringify({
+      data: [
+        { account_name: 'C', details: { status: 'ACTIVE' } },
+        { account_name: 'A', details: { status: 'INACTIVE' } },
+      ],
+    });
+    const expectedOutput = JSON.stringify(
+      {
+        data: [
+          { account_name: 'C', details: { status: 'ACTIVE' } },
+          { account_name: 'A', details: { status: 'INACTIVE' } },
+        ],
+      },
+      null,
+      2
+    );
+    expect(parseJsonData(input)).toEqual(expectedOutput);
   });
 });
