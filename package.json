@@ -4,6 +4,7 @@
   "description": "Code challenge",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "format": "prettier -w *.js",
     "test": "jest",
     "test:watch": "jest --watchAll"
