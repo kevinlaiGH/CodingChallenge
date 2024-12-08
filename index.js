@@ -1,12 +1,7 @@
 const fs = require('fs');
 const { Logger } = require('./helper');
-
-const fileName = 'data.json';
-
-const ACCOUNT_CATEGORY = {
-  REVENUE: 'revenue',
-  EXPENSE: 'expense',
-};
+const { ACCOUNT_CATEGORY, ACCOUNT_TYPE, VALUE_TYPE } = require('./constants');
+const fileName = 'testDataForGrossProfitMargin.json';
 
 const fileContent = JSON.parse(
   fs.readFileSync(fileName, { encoding: 'utf-8' })
@@ -26,9 +21,33 @@ const calculateExpense = (fileContent) => {
   return expenseItems.reduce((total, item) => total + item.total_value, 0);
 };
 
+const calculateSalesValue = (fileContent) =>
+  fileContent.data
+    .filter(
+      (item) =>
+        item.account_type === ACCOUNT_TYPE.SALES &&
+        item.value_type === VALUE_TYPE.DEBIT
+    )
+    .reduce((total, item) => total + item.total_value, 0);
+
+const calculateGrossProfitMargin = (fileContent, revenue) =>
+  revenue === 0 ? 0 : calculateSalesValue(fileContent) / revenue;
+
 calculateRevenue(fileContent);
 Logger.info('Revenue=' + calculateRevenue(fileContent));
+
 calculateExpense(fileContent);
 Logger.info('Expense=' + calculateExpense(fileContent));
 
-module.exports = { calculateRevenue, calculateExpense };
+calculateGrossProfitMargin(fileContent, calculateRevenue(fileContent));
+Logger.info(
+  'GrossProfitMargin=' +
+    calculateRevenue(fileContent, calculateRevenue(fileContent))
+);
+
+module.exports = {
+  calculateRevenue,
+  calculateExpense,
+  calculateSalesValue,
+  calculateGrossProfitMargin,
+};

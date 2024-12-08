@@ -22,7 +22,6 @@ const Logger = winston.createLogger({
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     simple()
   ),
-  defaultMeta: { service: 'accounting-service' },
   transports: [
     new winston.transports.Console(),
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
