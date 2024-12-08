@@ -1,103 +1,42 @@
-const fs = require('fs');
-const { Logger } = require('./helper');
+const calculationService = require('./src/services/calculationService');
 const {
-  ACCOUNT_CATEGORY,
-  ACCOUNT_TYPE,
-  ASSET_TYPES,
-  VALUE_TYPE,
-  LIABILITY_TYPES,
-} = require('./constants');
-const { formatCurrency, formatPercentage } = require('./helper');
-
-const fileName = 'data.json';
-
-const fileContent = JSON.parse(
-  fs.readFileSync(fileName, { encoding: 'utf-8' })
-);
-
-const calculateRevenue = (fileContent) => {
-  const revenueItems = fileContent.data.filter(
-    (item) => item.account_category === ACCOUNT_CATEGORY.REVENUE
-  );
-  return revenueItems.reduce((total, item) => total + item.total_value, 0);
-};
-
-const calculateExpense = (fileContent) => {
-  const expenseItems = fileContent.data.filter(
-    (item) => item.account_category === ACCOUNT_CATEGORY.EXPENSE
-  );
-  return expenseItems.reduce((total, item) => total + item.total_value, 0);
-};
-
-const calculateSalesValue = (fileContent) =>
-  fileContent.data
-    .filter(
-      (item) =>
-        item.account_type === ACCOUNT_TYPE.SALES &&
-        item.value_type === VALUE_TYPE.DEBIT
-    )
-    .reduce((total, item) => total + item.total_value, 0);
-
-const calculateGrossProfitMargin = (fileContent, revenue) =>
-  revenue === 0 ? 0 : calculateSalesValue(fileContent) / revenue;
-
-const calculateNetProfitMargin = (revenue, expenses) =>
-  revenue === 0 ? 0 : Number(((revenue - expenses) / revenue).toFixed(2));
-
-const calculateAssets = (fileContent) => {
-  return fileContent.data
-    .filter(
-      (item) =>
-        item.account_category === ACCOUNT_CATEGORY.ASSETS &&
-        Object.values(ASSET_TYPES).includes(item.account_type)
-    )
-    .reduce((sum, item) => {
-      if (item.value_type === VALUE_TYPE.DEBIT) return sum + item.total_value;
-      if (item.value_type === VALUE_TYPE.CREDIT) return sum - item.total_value;
-      return sum;
-    }, 0);
-};
-
-const calculateLiabilities = (fileContent) => {
-  return fileContent.data
-    .filter(
-      (item) =>
-        item.account_category === ACCOUNT_CATEGORY.LIABILITY &&
-        Object.values(LIABILITY_TYPES).includes(item.account_type)
-    )
-    .reduce((sum, item) => {
-      if (item.value_type === VALUE_TYPE.CREDIT) return sum + item.total_value;
-      if (item.value_type === VALUE_TYPE.DEBIT) return sum - item.total_value;
-      return sum;
-    }, 0);
-};
-
-const calculateWorkingCapitalRatio = (fileContent) =>
-  calculateLiabilities(fileContent) === 0
-    ? 0
-    : calculateAssets(fileContent) / calculateLiabilities(fileContent);
+  formatCurrency,
+  formatPercentage,
+} = require('./src/services/formatService');
+const { readJsonFile } = require('./src/utils/fileReader');
 
 const calculateAccountingMetrics = (fileContent) => {
-  console.log(`Revenue: ${formatCurrency(calculateRevenue(fileContent))}`);
-  console.log(`Expenses: ${formatCurrency(calculateExpense(fileContent))}`);
-  console.log(
-    `Gross Profit Margin: ${formatPercentage(
-      calculateGrossProfitMargin(fileContent, calculateRevenue(fileContent))
-    )}`
-  );
-  console.log(
-    `Net Profit Margin: ${formatPercentage(
-      calculateNetProfitMargin(
-        calculateRevenue(fileContent),
-        calculateExpense(fileContent)
+  return {
+    revenue: formatCurrency(calculationService.calculateRevenue(fileContent)),
+    expenses: formatCurrency(calculationService.calculateExpense(fileContent)),
+    grossProfitMargin: formatPercentage(
+      calculationService.calculateGrossProfitMargin(
+        fileContent,
+        calculationService.calculateRevenue(fileContent)
       )
-    )}`
-  );
-  console.log(
-    `Working Capital Ratio: ${formatPercentage(
-      calculateWorkingCapitalRatio(fileContent)
-    )}`
-  );
+    ),
+    netProfitMargin: formatPercentage(
+      calculationService.calculateNetProfitMargin(
+        calculationService.calculateRevenue(fileContent),
+        calculationService.calculateExpense(fileContent)
+      )
+    ),
+    workingCapitalRatio: formatPercentage(
+      calculationService.calculateWorkingCapitalRatio(fileContent)
+    ),
+  };
 };
 
-calculateAccountingMetrics(fileContent);
+const fileName = 'data.json';
+const fileContent = readJsonFile(fileName);
+
+const metrics = calculateAccountingMetrics(fileContent);
+
+// Print results
+console.log(`Revenue: ${metrics.revenue}`);
+console.log(`Expenses: ${metrics.expenses}`);
+console.log(`Gross Profit Margin: ${metrics.grossProfitMargin}`);
+console.log(`Net Profit Margin: ${metrics.netProfitMargin}`);
+console.log(`Working Capital Ratio: ${metrics.workingCapitalRatio}`);
+
+module.exports = { calculateAccountingMetrics };
