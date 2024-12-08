@@ -1,0 +1,22 @@
+{
+  "name": "challenge",
+  "version": "1.0.0",
+  "description": "Code challenge",
+  "main": "index.js",
+  "scripts": {
+    "format": "prettier -w *.js",
+    "test": "jest",
+    "test:watch": "jest --watchAll"
+  },
+  "author": "Kevin Lai",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "jest": "^27.4.5",
+    "prettier": "^2.5.1"
+  },
+  "dependencies": {
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
+    "winston": "^3.17.0"
+  }
+}
