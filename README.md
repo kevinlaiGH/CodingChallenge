@@ -95,6 +95,11 @@ If your program requires a special way to compile or a specific version of a too
 
 **Thank you and good luck!**
 
+## Instructions
+
+Run the code with `node sortedData.js` to create a clean version of data
+Then run the `node index.js` for the accounting metrics
+
 ## Tests
 
 Run the tests with `npm test`
@@ -104,4 +109,5 @@ You can also run the tests in 'watch' (continuous update mode) with:
 ```sh
 npm run test:watch
 ```
+
 # rewardPayCodingChallenge

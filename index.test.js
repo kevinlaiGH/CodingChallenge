@@ -1,98 +1,47 @@
-const { sortObjectAttributes, parseJsonData } = require('./index');
+const { calculateRevenue } = require('./index');
 
-describe('sortObjectAttributes', () => {
-  it('should sort the attributes of an object alphabetically', () => {
-    const input = {
-      account_name: 'PAYG Withholdings Payable',
-      account_status: 'ACTIVE',
-      account_type_bank: '',
-      system_account: '',
-      value_type: 'credit',
-      total_value: 6028.0,
-      account_category: 'liability',
-      account_code: '825',
-      account_currency: 'AUD',
-      account_identifier: '4d111d55-1c71-46b4-8cbc-d8b54d8d54c5',
-      account_type: 'payroll',
-    };
-
-    const expectedOutput = {
-      account_category: 'liability',
-      account_code: '825',
-      account_currency: 'AUD',
-      account_identifier: '4d111d55-1c71-46b4-8cbc-d8b54d8d54c5',
-      account_name: 'PAYG Withholdings Payable',
-      account_status: 'ACTIVE',
-      account_type: 'payroll',
-      account_type_bank: '',
-      system_account: '',
-      total_value: 6028,
-      value_type: 'credit',
-    };
-    expect(sortObjectAttributes(input)).toEqual(expectedOutput);
-  });
-
-  it('should handle an empty object', () => {
-    const input = {};
-    const expectedOutput = {};
-    expect(sortObjectAttributes(input)).toEqual(expectedOutput);
-  });
-
-  it('should handle an object with one attribute', () => {
-    const input = { account_category: 'liability' };
-    const expectedOutput = { account_category: 'liability' };
-    expect(sortObjectAttributes(input)).toEqual(expectedOutput);
-  });
-});
-describe('parseJsonData', () => {
-  it('should parse JSON data with sorted object attributes', () => {
-    const input = JSON.stringify({
-      data: [
-        { account_name: 'B', account_status: 'ACTIVE' },
-        { account_name: 'A', account_status: 'INACTIVE' },
-      ],
+describe('calculateAccountingMetrics', () => {
+  describe('calculateRevenue', () => {
+    it('should return 0 if there are no revenue items', () => {
+      const fileContent = {
+        data: [{ account_category: 'expense', total_value: 1000 }],
+      };
+      const expectedOutput = 0;
+      expect(calculateRevenue(fileContent)).toEqual(expectedOutput);
     });
-    const expectedOutput = JSON.stringify(
-      {
+
+    it('should correctly sum total_value for multiple revenue items', () => {
+      const fileContent = {
         data: [
-          { account_name: 'B', account_status: 'ACTIVE' },
-          { account_name: 'A', account_status: 'INACTIVE' },
+          { account_category: 'revenue', total_value: 1000 },
+          { account_category: 'revenue', total_value: 2000 },
+          { account_category: 'expense', total_value: 500 },
         ],
-      },
-      null,
-      2
-    );
-    expect(parseJsonData(input)).toEqual(expectedOutput);
-  });
-
-  it('should handle JSON data with an empty data array', () => {
-    const input = JSON.stringify({ data: [] });
-    const expectedOutput = JSON.stringify({ data: [] }, null, 2);
-    expect(parseJsonData(input)).toEqual(expectedOutput);
-  });
-
-  it('should throw an error for invalid JSON input', () => {
-    const input = 'invalid json';
-    expect(() => parseJsonData(input)).toThrow(SyntaxError);
-  });
-
-  it('should handle JSON data with nested objects', () => {
-    const input = JSON.stringify({
-      data: [
-        { account_name: 'C', details: { status: 'ACTIVE' } },
-        { account_name: 'A', details: { status: 'INACTIVE' } },
-      ],
+      };
+      const expectedOutput = 3000;
+      expect(calculateRevenue(fileContent)).toEqual(expectedOutput);
     });
-    const expectedOutput = JSON.stringify(
-      {
+
+    it('should handle revenue items with zero total_value', () => {
+      const fileContent = {
         data: [
-          { account_name: 'C', details: { status: 'ACTIVE' } },
-          { account_name: 'A', details: { status: 'INACTIVE' } },
+          { account_category: 'revenue', total_value: 0 },
+          { account_category: 'revenue', total_value: 1500 },
         ],
-      },
-      null,
-      2
-    );
-    expect(parseJsonData(input)).toEqual(expectedOutput);
+      };
+      const expectedOutput = 1500;
+      expect(calculateRevenue(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should handle revenue items with negative total_value', () => {
+      const fileContent = {
+        data: [
+          { account_category: 'revenue', total_value: -500 },
+          { account_category: 'revenue', total_value: 2000 },
+        ],
+      };
+      const expectedOutput = 1500;
+      expect(calculateRevenue(fileContent)).toEqual(expectedOutput);
+    });
   });
 });

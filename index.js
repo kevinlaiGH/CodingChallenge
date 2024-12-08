@@ -1,32 +1,25 @@
 const fs = require('fs');
-const {
-  sortObjectAttributes,
-  sanitizedPath,
-  Logger,
-} = require('./helper');
+const { Logger } = require('./helper');
 
-const parseJsonData = (data) => {
-  const jsonData = JSON.parse(data);
-  jsonData.data = jsonData.data.map(sortObjectAttributes);
-  return JSON.stringify(jsonData, null, 2);
+const fileName = 'newData.json';
+
+const ACCOUNT_CATEGORY = {
+  REVENUE: 'revenue',
 };
 
-const sortAndSaveData = async (inputFile, outputFile) => {
-  try {
-    const data = await fs.promises.readFile(sanitizedPath(inputFile), 'utf8');
-    const sortedData = parseJsonData(data);
-    await fs.promises.writeFile(sanitizedPath(outputFile), sortedData);
-    Logger.info(`Data attributes sorted and saved to ${outputFile}`);
-  } catch (err) {
-    Logger.error('Error processing file:', err);
-    throw err;
-  }
+const fileContent = JSON.parse(
+  fs.readFileSync(fileName, { encoding: 'utf-8' })
+);
+
+const calculateRevenue = (fileContent) => {
+  const revenueItems = fileContent.data.filter(
+    (item) => item.account_category === ACCOUNT_CATEGORY.REVENUE
+  );
+  return revenueItems.reduce((total, item) => total + item.total_value, 0);
 };
 
-sortAndSaveData('data.json', 'sorted_data.json');
+calculateRevenue(fileContent);
 
-module.exports = {
-  sortObjectAttributes,
-  parseJsonData,
-  sortAndSaveData,
-};
+Logger.info(calculateRevenue(fileContent));
+
+module.exports = { calculateRevenue };
