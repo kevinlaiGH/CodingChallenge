@@ -6,6 +6,7 @@ const {
   calculateNetProfitMargin,
   calculateAssets,
   calculateLiabilities,
+  calculateWorkingCapitalRatio,
 } = require('./index');
 const {
   ACCOUNT_CATEGORY,
@@ -498,6 +499,71 @@ describe('calculateAccountingMetrics', () => {
       };
       const expectedOutput = 2000;
       expect(calculateLiabilities(fileContent)).toEqual(expectedOutput);
+    });
+  });
+
+  describe('calculateWorkingCapitalRatio', () => {
+    it('should return 0 if liabilities are 0 and assets are greater than 0', () => {
+      const fileContent = {
+        data: [
+          { account_category: ACCOUNT_CATEGORY.ASSETS, total_value: 1000 },
+        ],
+      };
+      const expectedOutput = 0;
+      expect(calculateWorkingCapitalRatio(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should return a positive ratio if assets are greater than liabilities', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.CURRENT,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 3000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 1000,
+          },
+        ],
+      };
+      const expectedOutput = 3; // 3000 / 1000
+      expect(calculateWorkingCapitalRatio(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should return a negative ratio if liabilities exceed assets', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 1000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: ASSET_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 3000,
+          },
+        ],
+      };
+      const expectedOutput = -0.3333; // -1000 / 3000
+      expect(calculateWorkingCapitalRatio(fileContent)).toBeCloseTo(
+        expectedOutput,
+        4
+      );
+    });
+
+    it('should return 0 if both assets and liabilities are 0', () => {
+      const fileContent = {
+        data: [],
+      };
+      const expectedOutput = 0;
+      expect(calculateWorkingCapitalRatio(fileContent)).toEqual(expectedOutput);
     });
   });
 });

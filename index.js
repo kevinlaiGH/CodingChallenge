@@ -71,10 +71,10 @@ const calculateLiabilities = (fileContent) => {
     }, 0);
 };
 
-const workingCapitalRatio = (fileContent) =>
-  liabilities === 0
+const calculateWorkingCapitalRatio = (fileContent) =>
+  calculateLiabilities(fileContent) === 0
     ? 0
-    : calculateAssets(fileContent) / calculateliabilities(fileContent);
+    : calculateAssets(fileContent) / calculateLiabilities(fileContent);
 
 calculateRevenue(fileContent);
 Logger.info('Revenue=' + calculateRevenue(fileContent));
@@ -102,7 +102,7 @@ Logger.info(
 
 Logger.info('assets=' + calculateAssets(fileContent));
 Logger.info('liabilities=' + calculateLiabilities(fileContent));
-// Logger.info('workingCapitalRatio=' + workingCapitalRatio);
+Logger.info('workingCapitalRatio=' + calculateWorkingCapitalRatio(fileContent));
 
 module.exports = {
   calculateRevenue,
@@ -112,4 +112,5 @@ module.exports = {
   calculateNetProfitMargin,
   calculateAssets,
   calculateLiabilities,
+  calculateWorkingCapitalRatio,
 };
