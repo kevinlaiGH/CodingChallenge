@@ -1,7 +1,8 @@
 const fs = require('fs');
 const { Logger } = require('./helper');
 const { ACCOUNT_CATEGORY, ACCOUNT_TYPE, VALUE_TYPE } = require('./constants');
-const fileName = 'testDataForGrossProfitMargin.json';
+
+const fileName = 'data.json';
 
 const fileContent = JSON.parse(
   fs.readFileSync(fileName, { encoding: 'utf-8' })
@@ -33,6 +34,9 @@ const calculateSalesValue = (fileContent) =>
 const calculateGrossProfitMargin = (fileContent, revenue) =>
   revenue === 0 ? 0 : calculateSalesValue(fileContent) / revenue;
 
+const calculateNetProfitMargin = (revenue, expenses) =>
+  revenue === 0 ? 0 : Number(((revenue - expenses) / revenue).toFixed(2));
+
 calculateRevenue(fileContent);
 Logger.info('Revenue=' + calculateRevenue(fileContent));
 
@@ -45,9 +49,22 @@ Logger.info(
     calculateRevenue(fileContent, calculateRevenue(fileContent))
 );
 
+calculateNetProfitMargin(
+  calculateRevenue(fileContent),
+  calculateExpense(fileContent)
+);
+Logger.info(
+  'NetProfitMargin=' +
+    calculateNetProfitMargin(
+      calculateRevenue(fileContent),
+      calculateExpense(fileContent)
+    )
+);
+
 module.exports = {
   calculateRevenue,
   calculateExpense,
   calculateSalesValue,
   calculateGrossProfitMargin,
+  calculateNetProfitMargin,
 };

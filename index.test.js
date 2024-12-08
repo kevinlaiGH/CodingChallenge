@@ -3,6 +3,7 @@ const {
   calculateExpense,
   calculateSalesValue,
   calculateGrossProfitMargin,
+  calculateNetProfitMargin,
 } = require('./index');
 const { ACCOUNT_CATEGORY, ACCOUNT_TYPE, VALUE_TYPE } = require('./constants');
 
@@ -248,6 +249,53 @@ describe('calculateAccountingMetrics', () => {
       const revenue = 2000;
       const expectedOutput = 1; // (3000 - 1000) / 2000
       expect(calculateGrossProfitMargin(fileContent, revenue)).toEqual(
+        expectedOutput
+      );
+    });
+  });
+
+  describe('calculateNetProfitMargin', () => {
+    it('should return 0 if revenue is 0', () => {
+      const revenue = 0;
+      const expenses = 500;
+      const expectedOutput = 0;
+      expect(calculateNetProfitMargin(revenue, expenses)).toEqual(
+        expectedOutput
+      );
+    });
+
+    it('should return 1 if expenses are 0 and revenue is greater than 0', () => {
+      const revenue = 1000;
+      const expenses = 0;
+      const expectedOutput = 1;
+      expect(calculateNetProfitMargin(revenue, expenses)).toEqual(
+        expectedOutput
+      );
+    });
+
+    it('should return a negative value if expenses exceed revenue', () => {
+      const revenue = 500;
+      const expenses = 600;
+      const expectedOutput = -0.2; // (500 - 600) / 500
+      expect(calculateNetProfitMargin(revenue, expenses)).toEqual(
+        expectedOutput
+      );
+    });
+
+    it('should handle large numbers correctly', () => {
+      const revenue = 1e6;
+      const expenses = 5e5;
+      const expectedOutput = 0.5; // (1e6 - 5e5) / 1e6
+      expect(calculateNetProfitMargin(revenue, expenses)).toEqual(
+        expectedOutput
+      );
+    });
+
+    it('should handle decimal values correctly', () => {
+      const revenue = 1000.75;
+      const expenses = 250.25;
+      const expectedOutput = 0.75; // (1000.75 - 250.25) / 1000.75
+      expect(calculateNetProfitMargin(revenue, expenses)).toEqual(
         expectedOutput
       );
     });
