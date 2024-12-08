@@ -7,6 +7,7 @@ const {
   VALUE_TYPE,
   LIABILITY_TYPES,
 } = require('./constants');
+const { formatCurrency, formatPercentage } = require('./helper');
 
 const fileName = 'data.json';
 
@@ -76,41 +77,27 @@ const calculateWorkingCapitalRatio = (fileContent) =>
     ? 0
     : calculateAssets(fileContent) / calculateLiabilities(fileContent);
 
-calculateRevenue(fileContent);
-Logger.info('Revenue=' + calculateRevenue(fileContent));
-
-calculateExpense(fileContent);
-Logger.info('Expense=' + calculateExpense(fileContent));
-
-calculateGrossProfitMargin(fileContent, calculateRevenue(fileContent));
-Logger.info(
-  'GrossProfitMargin=' +
-    calculateRevenue(fileContent, calculateRevenue(fileContent))
-);
-
-calculateNetProfitMargin(
-  calculateRevenue(fileContent),
-  calculateExpense(fileContent)
-);
-Logger.info(
-  'NetProfitMargin=' +
-    calculateNetProfitMargin(
-      calculateRevenue(fileContent),
-      calculateExpense(fileContent)
-    )
-);
-
-Logger.info('assets=' + calculateAssets(fileContent));
-Logger.info('liabilities=' + calculateLiabilities(fileContent));
-Logger.info('workingCapitalRatio=' + calculateWorkingCapitalRatio(fileContent));
-
-module.exports = {
-  calculateRevenue,
-  calculateExpense,
-  calculateSalesValue,
-  calculateGrossProfitMargin,
-  calculateNetProfitMargin,
-  calculateAssets,
-  calculateLiabilities,
-  calculateWorkingCapitalRatio,
+const calculateAccountingMetrics = (fileContent) => {
+  console.log(`Revenue: ${formatCurrency(calculateRevenue(fileContent))}`);
+  console.log(`Expenses: ${formatCurrency(calculateExpense(fileContent))}`);
+  console.log(
+    `Gross Profit Margin: ${formatPercentage(
+      calculateGrossProfitMargin(fileContent, calculateRevenue(fileContent))
+    )}`
+  );
+  console.log(
+    `Net Profit Margin: ${formatPercentage(
+      calculateNetProfitMargin(
+        calculateRevenue(fileContent),
+        calculateExpense(fileContent)
+      )
+    )}`
+  );
+  console.log(
+    `Working Capital Ratio: ${formatPercentage(
+      calculateWorkingCapitalRatio(fileContent)
+    )}`
+  );
 };
+
+calculateAccountingMetrics(fileContent);
