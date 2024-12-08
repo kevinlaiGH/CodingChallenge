@@ -5,11 +5,13 @@ const {
   calculateGrossProfitMargin,
   calculateNetProfitMargin,
   calculateAssets,
+  calculateLiabilities,
 } = require('./index');
 const {
   ACCOUNT_CATEGORY,
   ACCOUNT_TYPE,
   ASSET_TYPES,
+  LIABILITY_TYPES,
   VALUE_TYPE,
 } = require('./constants');
 
@@ -400,6 +402,102 @@ describe('calculateAccountingMetrics', () => {
       };
       const expectedOutput = 2000;
       expect(calculateAssets(fileContent)).toEqual(expectedOutput);
+    });
+  });
+
+  describe('calculateLiabilities', () => {
+    it('should return 0 if there are no liability items', () => {
+      const fileContent = {
+        data: [
+          { account_category: ACCOUNT_CATEGORY.EXPENSE, total_value: 1000 },
+        ],
+      };
+      const expectedOutput = 0;
+      expect(calculateLiabilities(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should correctly sum total_value for multiple liability items with credit value_type', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 2000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT_ACCOUNTS_PAYABLE,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 1500,
+          },
+        ],
+      };
+      const expectedOutput = 3500;
+      expect(calculateLiabilities(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should correctly subtract total_value for multiple liability items with debit value_type', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 1000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT_ACCOUNTS_PAYABLE,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 500,
+          },
+        ],
+      };
+      const expectedOutput = -1500;
+      expect(calculateLiabilities(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should handle mixed value_types correctly', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 3000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT_ACCOUNTS_PAYABLE,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 1000,
+          },
+        ],
+      };
+      const expectedOutput = 2000;
+      expect(calculateLiabilities(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should ignore liability items with non-liability account_category', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.EXPENSE,
+            account_type: LIABILITY_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 1000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.LIABILITY,
+            account_type: LIABILITY_TYPES.CURRENT_ACCOUNTS_PAYABLE,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 2000,
+          },
+        ],
+      };
+      const expectedOutput = 2000;
+      expect(calculateLiabilities(fileContent)).toEqual(expectedOutput);
     });
   });
 });

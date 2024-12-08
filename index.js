@@ -57,20 +57,24 @@ const calculateAssets = (fileContent) => {
     }, 0);
 };
 
-const liabilities = fileContent.data
-  .filter(
-    (item) =>
-      item.account_category === ACCOUNT_CATEGORY.LIABILITY &&
-      Object.values(LIABILITY_TYPES).includes(item.account_type)
-  )
-  .reduce((sum, item) => {
-    if (item.value_type === VALUE_TYPE.CREDIT) return sum + item.total_value;
-    if (item.value_type === VALUE_TYPE.DEBIT) return sum - item.total_value;
-    return sum;
-  }, 0);
+const calculateLiabilities = (fileContent) => {
+  return fileContent.data
+    .filter(
+      (item) =>
+        item.account_category === ACCOUNT_CATEGORY.LIABILITY &&
+        Object.values(LIABILITY_TYPES).includes(item.account_type)
+    )
+    .reduce((sum, item) => {
+      if (item.value_type === VALUE_TYPE.CREDIT) return sum + item.total_value;
+      if (item.value_type === VALUE_TYPE.DEBIT) return sum - item.total_value;
+      return sum;
+    }, 0);
+};
 
 const workingCapitalRatio = (fileContent) =>
-  liabilities === 0 ? 0 : calculateAssets(fileContent) / liabilities;
+  liabilities === 0
+    ? 0
+    : calculateAssets(fileContent) / calculateliabilities(fileContent);
 
 calculateRevenue(fileContent);
 Logger.info('Revenue=' + calculateRevenue(fileContent));
@@ -97,7 +101,7 @@ Logger.info(
 );
 
 Logger.info('assets=' + calculateAssets(fileContent));
-Logger.info('liabilities=' + liabilities);
+Logger.info('liabilities=' + calculateLiabilities(fileContent));
 // Logger.info('workingCapitalRatio=' + workingCapitalRatio);
 
 module.exports = {
@@ -107,4 +111,5 @@ module.exports = {
   calculateGrossProfitMargin,
   calculateNetProfitMargin,
   calculateAssets,
+  calculateLiabilities,
 };
