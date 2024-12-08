@@ -1,10 +1,11 @@
 const fs = require('fs');
 const { Logger } = require('./helper');
 
-const fileName = 'newData.json';
+const fileName = 'data.json';
 
 const ACCOUNT_CATEGORY = {
   REVENUE: 'revenue',
+  EXPENSE: 'expense',
 };
 
 const fileContent = JSON.parse(
@@ -18,8 +19,16 @@ const calculateRevenue = (fileContent) => {
   return revenueItems.reduce((total, item) => total + item.total_value, 0);
 };
 
+const calculateExpense = (fileContent) => {
+  const expenseItems = fileContent.data.filter(
+    (item) => item.account_category === ACCOUNT_CATEGORY.EXPENSE
+  );
+  return expenseItems.reduce((total, item) => total + item.total_value, 0);
+};
+
 calculateRevenue(fileContent);
+Logger.info('Revenue=' + calculateRevenue(fileContent));
+calculateExpense(fileContent);
+Logger.info('Expense=' + calculateExpense(fileContent));
 
-Logger.info(calculateRevenue(fileContent));
-
-module.exports = { calculateRevenue };
+module.exports = { calculateRevenue, calculateExpense };
