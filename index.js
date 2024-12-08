@@ -1,6 +1,12 @@
 const fs = require('fs');
 const { Logger } = require('./helper');
-const { ACCOUNT_CATEGORY, ACCOUNT_TYPE, VALUE_TYPE } = require('./constants');
+const {
+  ACCOUNT_CATEGORY,
+  ACCOUNT_TYPE,
+  ASSET_TYPES,
+  VALUE_TYPE,
+  LIABILITY_TYPES,
+} = require('./constants');
 
 const fileName = 'data.json';
 
@@ -37,6 +43,35 @@ const calculateGrossProfitMargin = (fileContent, revenue) =>
 const calculateNetProfitMargin = (revenue, expenses) =>
   revenue === 0 ? 0 : Number(((revenue - expenses) / revenue).toFixed(2));
 
+const calculateAssets = (fileContent) => {
+  return fileContent.data
+    .filter(
+      (item) =>
+        item.account_category === ACCOUNT_CATEGORY.ASSETS &&
+        Object.values(ASSET_TYPES).includes(item.account_type)
+    )
+    .reduce((sum, item) => {
+      if (item.value_type === VALUE_TYPE.DEBIT) return sum + item.total_value;
+      if (item.value_type === VALUE_TYPE.CREDIT) return sum - item.total_value;
+      return sum;
+    }, 0);
+};
+
+const liabilities = fileContent.data
+  .filter(
+    (item) =>
+      item.account_category === ACCOUNT_CATEGORY.LIABILITY &&
+      Object.values(LIABILITY_TYPES).includes(item.account_type)
+  )
+  .reduce((sum, item) => {
+    if (item.value_type === VALUE_TYPE.CREDIT) return sum + item.total_value;
+    if (item.value_type === VALUE_TYPE.DEBIT) return sum - item.total_value;
+    return sum;
+  }, 0);
+
+const workingCapitalRatio = (fileContent) =>
+  liabilities === 0 ? 0 : calculateAssets(fileContent) / liabilities;
+
 calculateRevenue(fileContent);
 Logger.info('Revenue=' + calculateRevenue(fileContent));
 
@@ -61,10 +96,15 @@ Logger.info(
     )
 );
 
+Logger.info('assets=' + calculateAssets(fileContent));
+Logger.info('liabilities=' + liabilities);
+// Logger.info('workingCapitalRatio=' + workingCapitalRatio);
+
 module.exports = {
   calculateRevenue,
   calculateExpense,
   calculateSalesValue,
   calculateGrossProfitMargin,
   calculateNetProfitMargin,
+  calculateAssets,
 };

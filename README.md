@@ -64,6 +64,7 @@ This is calculated dividing the `assets` by the `liabilities` creating a percent
 and liabilities are calculated by:
 
 - adding the `total_value` from all records where the `account_category` is set to `liability`, the `value_type` is set to `credit`, and the `account_type` is one of `current` or `current_accounts_payable`
+
 - subtracting the `total_value` from all records where the `account_category` is set to `liability`, the `value_type` is set to `debit`, and the `account_type` is one `current` or `current_accounts_payable`
 
 ## Formatting

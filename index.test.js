@@ -4,8 +4,14 @@ const {
   calculateSalesValue,
   calculateGrossProfitMargin,
   calculateNetProfitMargin,
+  calculateAssets,
 } = require('./index');
-const { ACCOUNT_CATEGORY, ACCOUNT_TYPE, VALUE_TYPE } = require('./constants');
+const {
+  ACCOUNT_CATEGORY,
+  ACCOUNT_TYPE,
+  ASSET_TYPES,
+  VALUE_TYPE,
+} = require('./constants');
 
 describe('calculateAccountingMetrics', () => {
   describe('calculateRevenue', () => {
@@ -298,6 +304,102 @@ describe('calculateAccountingMetrics', () => {
       expect(calculateNetProfitMargin(revenue, expenses)).toEqual(
         expectedOutput
       );
+    });
+  });
+
+  describe('calculateAssets', () => {
+    it('should return 0 if there are no asset items', () => {
+      const fileContent = {
+        data: [
+          { account_category: ACCOUNT_CATEGORY.EXPENSE, total_value: 1000 },
+        ],
+      };
+      const expectedOutput = 0;
+      expect(calculateAssets(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should correctly sum total_value for multiple asset items with debit value_type', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.CURRENT,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 1000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.BANK,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 2000,
+          },
+        ],
+      };
+      const expectedOutput = 3000;
+      expect(calculateAssets(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should correctly sum total_value for multiple asset items with credit value_type', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 500,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.BANK,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 1500,
+          },
+        ],
+      };
+      const expectedOutput = -2000;
+      expect(calculateAssets(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should handle mixed value_types correctly', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.BANK,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 2000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.CURRENT,
+            value_type: VALUE_TYPE.CREDIT,
+            total_value: 500,
+          },
+        ],
+      };
+      const expectedOutput = 1500;
+      expect(calculateAssets(fileContent)).toEqual(expectedOutput);
+    });
+
+    it('should ignore asset items with non-asset account_category', () => {
+      const fileContent = {
+        data: [
+          {
+            account_category: ACCOUNT_CATEGORY.EXPENSE,
+            account_type: ASSET_TYPES.BANK,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 1000,
+          },
+          {
+            account_category: ACCOUNT_CATEGORY.ASSETS,
+            account_type: ASSET_TYPES.CURRENT,
+            value_type: VALUE_TYPE.DEBIT,
+            total_value: 2000,
+          },
+        ],
+      };
+      const expectedOutput = 2000;
+      expect(calculateAssets(fileContent)).toEqual(expectedOutput);
     });
   });
 });
